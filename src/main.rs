@@ -43,10 +43,10 @@ fn draw(buffer: &mut Vec<u32>, x: f32, y: f32, color: u32) {
 }
 
 fn draw_line(buffer: &mut Vec<u32>, x1: f32, y1: f32, x2: f32, y2: f32, color: u32) {
-    let mut x = 0.0;
-    let mut y = 0.0;
-    let mut xe = 0.0;
-    let mut ye = 0.0;
+    let mut x: f32;
+    let mut y: f32;
+    let xe: f32;
+    let ye: f32;
     let dx = x2 - x1;
     let dy = y2 - y1;
     let dx1 = dx.abs();
