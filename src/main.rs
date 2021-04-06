@@ -24,6 +24,19 @@ struct SpaceObject {
     dy: f32,
     size: f32,
     angle: f32,
+    wrap: bool,
+}
+
+impl SpaceObject {
+    fn update(&mut self, delta: f32) {
+        self.x += self.dx * delta;
+        self.y += self.dy * delta;
+
+        if self.wrap {
+            self.x = wrap(self.x, WIDTH);
+            self.y = wrap(self.y, HEIGHT);
+        }
+    }
 }
 
 fn collide_circle(cx: f32, cy: f32, radius: f32, x: f32, y: f32) -> bool {
@@ -57,8 +70,8 @@ fn main() {
     
     // initialize game state
     let mut asteroids = vec![
-        SpaceObject { x: 20.0, y: 20.0, dx: 16.0, dy: -20.0, size: 16.0, angle: 0.0 },
-        SpaceObject { x: 100.0, y: 20.0, dx: -8.0, dy: -13.0, size: 16.0, angle: 0.0 },
+        SpaceObject { x: 20.0, y: 20.0, dx: 16.0, dy: -20.0, size: 16.0, angle: 0.0, wrap: true },
+        SpaceObject { x: 100.0, y: 20.0, dx: -8.0, dy: -13.0, size: 16.0, angle: 0.0, wrap: true },
     ];
     let mut player = SpaceObject {
         x: (WIDTH / 2) as f32,
@@ -67,6 +80,7 @@ fn main() {
         dy: 0.0,
         size: 1.0,
         angle: 0.0,
+        wrap: true,
     };
     let mut bullets: Vec<SpaceObject> = Vec::new();
     let mut score = 0;
@@ -112,17 +126,13 @@ fn main() {
                 dy: -100.0 * player.angle.cos(),
                 angle: 0.0,
                 size: 1.0,
+                wrap: false,
             })
         }
         
         // update & draw asteroids
         for asteroid in asteroids.iter_mut() {
-            asteroid.x += asteroid.dx * delta;
-            asteroid.y += asteroid.dy * delta;
-            
-            asteroid.x = wrap(asteroid.x, WIDTH);
-            asteroid.y = wrap(asteroid.y, HEIGHT);
-            
+            asteroid.update(delta);
             asteroid.angle += 0.5 * delta;
             
             canvas.draw_wireframe_model(
@@ -135,21 +145,13 @@ fn main() {
             );
         }
         
-        // update player
-        player.x += player.dx * delta;
-        player.y += player.dy * delta;
-
-        player.x = wrap(player.x, WIDTH);
-        player.y = wrap(player.y, HEIGHT);
-        
-        // player vertices
+        // update and draw player
+        player.update(delta);
         let player_model = vec![
             (0.0, -5.0),
             (-2.5, 2.5),
             (2.5, 2.5),
         ];
-        
-        // draw player
         canvas.draw_wireframe_model(
             &player_model,
             player.x,
@@ -161,8 +163,7 @@ fn main() {
         
         // update, draw, and cull bullets
         bullets.drain_filter(|b| {
-            b.x += b.dx * delta;
-            b.y += b.dy * delta;
+            b.update(delta);
 
             canvas.draw(b.x, b.y, 0xffffff);
             
@@ -186,6 +187,7 @@ fn main() {
                                 dy: 10.0 * angle.cos(),
                                 size: a.size / 2.0,
                                 angle,
+                                wrap: true,
                             })
                         }
                     }
